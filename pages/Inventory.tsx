@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MOCK_INVENTORY_ITEMS } from '../services/mockData';
 import { InventoryItem, InventoryStatus, StockUnit } from '../types';
 import { useUI } from '../context/UIContext';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const InventoryModal: React.FC<{
     item: Omit<InventoryItem, 'id'> | InventoryItem | null;
@@ -102,6 +103,13 @@ const Inventory: React.FC = () => {
     const [restockingItem, setRestockingItem] = useState<InventoryItem | null>(null);
     const { activeModal, openModal, closeModal, showToast } = useUI();
 
+    const chartData = useMemo(() => inventory.map(item => ({
+        name: item.name,
+        'Stock Actuel': item.stock,
+        'Seuil de stock bas': item.lowStockThreshold,
+        unit: item.unit,
+    })).sort((a, b) => a['Stock Actuel'] - b['Stock Actuel']), [inventory]);
+
     const getStatus = (item: InventoryItem): InventoryStatus => {
         if (item.stock <= 0) return InventoryStatus.OutOfStock;
         if (item.stock <= item.lowStockThreshold) return InventoryStatus.LowStock;
@@ -169,6 +177,31 @@ const Inventory: React.FC = () => {
             {isModalOpen && <InventoryModal item={editingItem} onClose={handleCloseModal} onSave={handleSaveItem} />}
             {restockingItem && <RestockModal item={restockingItem} onClose={handleCloseRestockModal} onSave={handleRestock} />}
             
+            <h1 className="text-3xl font-bold text-white">Gestion de l'Inventaire</h1>
+            
+            <div className="bg-bunker-900 p-6 rounded-lg shadow-md border border-bunker-800">
+                <h2 className="text-xl font-semibold text-white mb-4">Vue d'ensemble du Stock</h2>
+                <ResponsiveContainer width="100%" height={350}>
+                    <BarChart 
+                        data={chartData} 
+                        margin={{ top: 5, right: 20, bottom: 80, left: 0 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#393e55" />
+                        <XAxis dataKey="name" stroke="#b1b8cf" angle={-45} textAnchor="end" interval={0} tick={{ fontSize: '12px' }} />
+                        <YAxis stroke="#b1b8cf" />
+                        <Tooltip 
+                            cursor={{ fill: 'rgba(110, 110, 110, 0.1)' }}
+                            contentStyle={{ backgroundColor: '#11131a', border: '1px solid #393e55', borderRadius: '0.5rem' }}
+                            labelStyle={{ color: '#e6e7ee' }}
+                            formatter={(value: number, name: string, props: any) => [`${value} ${props.payload.unit}`, name]}
+                        />
+                        <Legend wrapperStyle={{ bottom: 10 }} />
+                        <Bar dataKey="Stock Actuel" fill="#f59e0b" />
+                        <Bar dataKey="Seuil de stock bas" fill="#656d95" />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
             <div className="bg-bunker-900 rounded-lg shadow-md border border-bunker-800 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">

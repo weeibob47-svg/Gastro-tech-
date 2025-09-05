@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { MOCK_ORDERS, MOCK_MENU_ITEMS } from '../services/mockData';
@@ -61,35 +60,47 @@ const Reports: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 bg-bunker-900 p-6 rounded-lg shadow-md border border-bunker-800">
-                     <h2 className="text-xl font-semibold text-white mb-4">Revenus par Jour</h2>
+                     <h2 className="text-xl font-semibold text-white mb-4">Tendances des Revenus par Jour</h2>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={reportData.chartData}>
+                        <LineChart data={reportData.chartData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#393e55" />
                             <XAxis dataKey="name" stroke="#b1b8cf" />
                             <YAxis stroke="#b1b8cf" />
-                            <Tooltip contentStyle={{ backgroundColor: '#11131a', border: '1px solid #393e55' }} />
-                            <Bar dataKey="revenu" fill="#f59e0b" name="Revenu" />
-                        </BarChart>
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#11131a', border: '1px solid #393e55' }}
+                            />
+                            <Legend wrapperStyle={{ color: '#b1b8cf' }}/>
+                            <Line type="monotone" dataKey="revenu" name="Revenu" stroke="#f59e0b" strokeWidth={2} activeDot={{ r: 8 }} />
+                        </LineChart>
                     </ResponsiveContainer>
                 </div>
                 <div className="lg:col-span-2 bg-bunker-900 p-6 rounded-lg shadow-md border border-bunker-800">
                      <h2 className="text-xl font-semibold text-white mb-4">Top 5 des Ventes</h2>
-                     <div className="space-y-3 mt-4">
-                        {reportData.topItemsList.map(item => (
-                            <div key={item.name}>
-                                <div className="flex justify-between text-sm mb-1">
-                                    <span className="font-medium text-bunker-200">{item.name}</span>
-                                    <span className="text-bunker-300">{item.revenue.toFixed(2)}€</span>
-                                </div>
-                                <div className="w-full bg-bunker-800 rounded-full h-2">
-                                    <div 
-                                        className="bg-amber-500 h-2 rounded-full" 
-                                        style={{ width: `${(item.revenue / reportData.topItemsList[0].revenue) * 100}%`}}
-                                    ></div>
-                                </div>
-                            </div>
-                        ))}
-                     </div>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                            layout="vertical"
+                            data={[...reportData.topItemsList].reverse()}
+                            margin={{ top: 5, right: 20, left: 80, bottom: 5 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#393e55" horizontal={false} />
+                            <XAxis type="number" stroke="#b1b8cf" />
+                            <YAxis
+                                dataKey="name"
+                                type="category"
+                                stroke="#b1b8cf"
+                                tick={{ fontSize: 12 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <Tooltip
+                                cursor={{ fill: 'rgba(110, 110, 110, 0.1)' }}
+                                contentStyle={{ backgroundColor: '#11131a', border: '1px solid #393e55', borderRadius: '0.5rem' }}
+                                formatter={(value: number) => [`${value.toFixed(2)}€`, 'Revenu']}
+                                labelStyle={{ color: '#e6e7ee' }}
+                            />
+                            <Bar dataKey="revenue" fill="#f59e0b" name="Revenu" radius={[0, 4, 4, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 
